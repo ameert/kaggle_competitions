@@ -1,4 +1,5 @@
 import numpy as np
+import csv
 
 datapath = '/home/ameert/git_projects/kaggle_competitions/titanic-gettingStarted/data/'
 
@@ -66,15 +67,18 @@ the definitions do not support such relations.
         return data
 
 def get_data(filename, ftype='train'):
-    data = np.loadtxt(datapath+filename, skiprows=1)
+    csvfile =  open(datapath+filename, 'rb')
+    data = csv.reader(csvfile, delimiter=',', quotechar='"')
+    data.next() #skip the first row
+
     pdata = []
     for row in data:
-        if ftype=='train':
-            pdata.append(passenger(data[0]+data[2:]))
-            pdata[-1].survived = data[1]
-        elif ftype=='test':
-            pdata.append(passenger(data))
-            
+        print row
+        row = [a if a!='' else '999' for a in row]
+        row = [a[0](a[1]) for a in zip([int, int, str, str, float, 
+                                        int, int,str, float, str, str], row)]
+        print row
+        pdata.append(passenger(row))            
     return pdata
 
 
