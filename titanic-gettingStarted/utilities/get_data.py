@@ -44,8 +44,22 @@ travelled with very close friends or neighbors in a village, however,
 the definitions do not support such relations.
 """
         self.Pid,self.Pclass,self.Name, self.Sex, self.Age, self.SibSp,self.ParCh, self.Ticket, self.fare,self.cabin, self.embark =data
+        self.Sex=self.convert_sex(self.Sex)
         self.survived = None
         return
+
+    def convert_sex(self, insex):
+        """converts the input sex into a 'M' or 'F'"""
+        insex = insex.lower()
+        if 'fe' in insex:
+            outsex='f'
+        else:
+            outsex = 'm'
+        return outsex
+ 
+    def __repr__(self):
+        """defines what is printed when you print the class"""
+        return str((self.Pid,self.Pclass,self.Name, self.Sex, self.Age, self.SibSp,self.ParCh, self.Ticket, self.fare,self.cabin, self.embark)) + ' survived: '+str(self.survived)
 
     def print_port(self):
         """print the name of the port based on the letter assigned"""
@@ -60,28 +74,28 @@ the definitions do not support such relations.
 
     def vectorize(self):
         """returns a vector useful for machine learning"""
-        convert_sex = {'M':0.5, 'F':-0.5}
+        convert_sex = {'m':0.5, 'f':-0.5}
 
-        return np.array((self.Pclass, convert_sex[self.Sex], self.Age, self.SibSp, self.ParCh,self.fare), dtype=float)
+        return np.array((self.Pclass, convert_sex[self.Sex], self.Age, self.fare), dtype=float)
 
-        return data
-
-def get_data(filename, ftype='train'):
+def get_data(filename):
     csvfile =  open(datapath+filename, 'rb')
     data = csv.reader(csvfile, delimiter=',', quotechar='"')
     data.next() #skip the first row
 
     pdata = []
     for row in data:
-        print row
         row = [a if a!='' else '999' for a in row]
         row = [a[0](a[1]) for a in zip([int, int, str, str, float, 
                                         int, int,str, float, str, str], row)]
-        print row
         pdata.append(passenger(row))            
     return pdata
+def get_survived(filename):
+    """loads the survival solutions for the training set"""
+    survived = np.loadtxt(datapath+filename, skiprows=1, unpack =True)
+    return survived
 
 
 if __name__ == "__main__":
-    pdata = get_data('train.csv', ftype='train')
+    pdata = get_data('train.csv')
     print pdata[0]
