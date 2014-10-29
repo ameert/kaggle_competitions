@@ -5,7 +5,7 @@ datapath = '/home/ameert/git_projects/kaggle_competitions/titanic-gettingStarted
 
 class passenger(object):
     """contains passenger data for titanic passengers"""
-    def __init__(self, data):
+    def __init__(self, data, missing):
         """passenger data:
 VARIABLE DESCRIPTIONS:
 survived        Survival (0 = No; 1 = Yes)
@@ -46,6 +46,7 @@ the definitions do not support such relations.
         self.Pid,self.Pclass,self.Name, self.Sex, self.Age, self.SibSp,self.ParCh, self.Ticket, self.fare,self.cabin, self.embark =data
         self.Sex=self.convert_sex(self.Sex)
         self.survived = None
+        self.missing = missing #array representing missing data
         return
 
     def convert_sex(self, insex):
@@ -59,7 +60,7 @@ the definitions do not support such relations.
  
     def __repr__(self):
         """defines what is printed when you print the class"""
-        return str((self.Pid,self.Pclass,self.Name, self.Sex, self.Age, self.SibSp,self.ParCh, self.Ticket, self.fare,self.cabin, self.embark)) + ' survived: '+str(self.survived)
+        return str((self.Pid,self.Pclass,self.Name, self.Sex, self.Age, self.SibSp,self.ParCh, self.Ticket, self.fare,self.cabin, self.embark)) + ' survived: '+str(self.survived)+'\nMissing: '+str(self.missing)
 
     def print_port(self):
         """print the name of the port based on the letter assigned"""
@@ -85,11 +86,13 @@ def get_data(filename):
 
     pdata = []
     for row in data:
+        missing = [False if a!='' else True for a in row]
         row = [a if a!='' else '999' for a in row]
         row = [a[0](a[1]) for a in zip([int, int, str, str, float, 
                                         int, int,str, float, str, str], row)]
-        pdata.append(passenger(row))            
+        pdata.append(passenger(row, missing))            
     return pdata
+
 def get_survived(filename):
     """loads the survival solutions for the training set"""
     survived = np.loadtxt(datapath+filename, skiprows=1, unpack =True)
