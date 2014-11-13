@@ -44,6 +44,7 @@ travelled with very close friends or neighbors in a village, however,
 the definitions do not support such relations.
 """
         self.Pid,self.Pclass,self.Name, self.Sex, self.Age, self.SibSp,self.ParCh, self.Ticket, self.fare,self.cabin, self.embark =data
+        self.fare =self.fare+0.000001 #no zero fares that mess up the log
         self.Sex=self.convert_sex(self.Sex)
         self.survived = None
         self.missing = missing #array representing missing data
@@ -77,7 +78,7 @@ the definitions do not support such relations.
         """returns a vector useful for machine learning"""
         convert_sex = {'m':0.5, 'f':-0.5}
 
-        return np.array((self.Pclass, convert_sex[self.Sex], self.Age, self.fare), dtype=float)
+        return np.array((self.Pclass, convert_sex[self.Sex], self.Age, np.log(self.fare), ), dtype=float)
 
 def get_data(filename):
     csvfile =  open(datapath+filename, 'rb')
