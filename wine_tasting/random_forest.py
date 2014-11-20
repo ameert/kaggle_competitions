@@ -19,7 +19,7 @@ skf = StratifiedKFold(dataset['labels'], n_folds=5)
 clf = RandomForestRegressor(n_estimators=50, max_depth=11, min_samples_split=2, 
                                 min_samples_leaf=1, max_features='auto', 
                                 oob_score=True, n_jobs=-1, random_state=42, 
-                                verbose=False)
+                            verbose=False, compute_importances=True)
 
 AOC = []
 tols = []
@@ -51,14 +51,9 @@ plt.close('all')
 
 clf.fit(dataset['data'].T,dataset['labels'])
 outlabels = clf.predict(dataset['data'].T)
-print mean_absolute_error(outlabels, dataset['labels'])
-
 
 train_curve = rec_curve(dataset['labels'],outlabels)
 train_curve.calc_rec(0.0, 10.0)
-    
-print "Final AOC estimate: %0.3f" %np.array(AOC).mean()
-print "Final Tolerance estimate (0.25, 0.5, 1.0): %s" %str(np.array(tols).mean(axis=0))
 
 confusion = np.histogram2d(dataset['labels'],outlabels, bins=11,
                            range=[[-0.5,10.5], [-0.5,10.5]])#, weights=None)
@@ -70,10 +65,20 @@ plt.xlabel('true label')
 plt.ylabel('fitted label')
 train_curve.display(None)
 
+print 'MAD:', mean_absolute_error(outlabels, dataset['labels'])
+print "Final AOC estimate: %0.3f" %np.array(AOC).mean()
+print "Final Tolerance estimate (0.25, 0.5, 1.0): %s"%str(np.array(tols).mean(axis=0))
 
+print "feature importances"
 
-final_test = get_data('./data/train-winequality-%s.csv' %winetype) 
-final_labels = clf.predict(dataset['data'].T)
+feature_names = ["fixed acidity","volatile acidity","citric acid",
+              "residual sugar","chlorides", "free sulfur dioxide",
+              "total sulfur dioxide","density","pH","sulphates","alcohol"]
+for a in np.argsort(-1.0*clf.feature_importances_):
+    print "%s %0.4f" %(feature_names[a],clf.feature_importances_[a]) 
+
+final_test = get_data('./data/test-winequality-%s.csv' %winetype) 
+final_labels = clf.predict(final_test['data'].T)
 outfile = open('alans_preds.txt','w')
 for a in final_labels:
     outfile.write('%f\n' %a)
