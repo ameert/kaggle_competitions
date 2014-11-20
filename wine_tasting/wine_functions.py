@@ -1,7 +1,5 @@
 import numpy as np
 
-
-
 def get_data(infile, get_labels = True):
     """Loads the data for the wine data"""
     data = np.loadtxt(infile, unpack=True, delimiter = ';')

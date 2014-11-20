@@ -25,6 +25,10 @@ datalabels = ['fixed acidity g/L tartaric','volatile acidity g/L accetic', 'citr
 
 plotdat = dict(zip(datalabels, dataset['data']))
 
+plotdat['sugar/gravity'] = plotdat['residual sugar g/L']/(1000.0*plotdat['density g/cc'])
+
+
+
 def do_2dplot(xdat, ydat, plotdat, labels):
     fig = plt.figure(figsize=(8,6))
     plt.scatter(plotdat[xdat],plotdat[ydat], edgecolor='none', s=6,c = labels)
@@ -32,6 +36,12 @@ def do_2dplot(xdat, ydat, plotdat, labels):
     plt.ylabel(ydat)
     plt.colorbar()
     return
+
+do_2dplot('sugar/gravity', 'alcohol % vol', plotdat, dataset['labels'])
+
+plt.show()
+
+
 
 do_2dplot('fixed acidity g/L tartaric', 'volatile acidity g/L accetic', plotdat, dataset['labels'])
 do_2dplot('residual sugar g/L', 'pH', plotdat, dataset['labels'])
