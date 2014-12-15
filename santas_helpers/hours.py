@@ -31,6 +31,16 @@ class Hours:
         """ Return boolean True or False if a given time (in minutes) is a sanctioned working day minute.  """
         return ((minute - self.day_start) % self.minutes_in_24h) < (self.hours_per_day * 60)
 
+    
+    def day_minutes_remaining(self, curr_time):
+        return self.day_end - curr_time%self.minutes_in_24h 
+
+    def tomorrow_minutes(self, curr_time):
+        num_days = curr_tim / self.minutes_in_24h
+        return int(num_days+1)*self.minutes_in_24h + self.day_start
+
+
+
     def get_sanctioned_breakdown(self, start_minute, duration):
         """ Whole days (24-hr time periods) contribute fixed quantities of sanctioned and unsanctioned time. After
         accounting for the whole days in the duration, the remainder minutes are tabulated as un/sanctioned.
