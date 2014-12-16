@@ -60,7 +60,8 @@ def matts_solution(bj, tj, gj, soln_file, myelves,low_thresh, high_thresh):
     row_count = 0
     f =  open(gj, 'rb')
     f.readline()
-    
+
+    print "loading toys"
     available_toys = []
     while True:
         try:
@@ -69,13 +70,20 @@ def matts_solution(bj, tj, gj, soln_file, myelves,low_thresh, high_thresh):
         except:
             break
     f.close()
-     
+    print "toys loaded"
+
     tjfile = open(tj)
     tjfile.readline()
     bjfile = open(bj)
     bjfile.readline()
 
+    print "assigning toys"
+    toys_ass = 0
+    next_print = range(0,1000000, 1000)
     with open(soln_file, 'wb') as w:
+        if toys_ass > next_print[0]:
+            next_print.pop[0]
+            print "assigned toys: ", toys_ass
         wcsv = csv.writer(w)
         wcsv.writerow(['ToyId', 'ElfId', 'StartTime', 'Duration'])
     
@@ -84,23 +92,23 @@ def matts_solution(bj, tj, gj, soln_file, myelves,low_thresh, high_thresh):
 
         while len(available_toys)>0:
             for elf in myelves:
-                print 'elf ', elf.id
+                #print 'elf ', elf.id
                 job_to_ass=None
                 if elf.rating >= high_thresh  and next_big is not None:
-                    print 'long'
+                    #print 'long'
                     job_to_ass = next_big
                     next_big = next_newtoy(bjfile)
                 elif elf.rating>=low_thresh:
-                    print 'med'
+                    #print 'med'
                     job_to_ass = get_best_job(available_toys, elf.rating, elf.next_available_time, hrs, force=False) 
-                print job_to_ass
+                #print job_to_ass
                 if job_to_ass==None and next_tiny is not None:
-                    print 'short'
-                    print 'nexttiny'
-                    print next_tiny
+                    #print 'short'
+                    #print 'nexttiny'
+                    #print next_tiny
                     job_to_ass = next_tiny
                     next_tiny = next_newtoy(tjfile)
-                print job_to_ass
+                #print job_to_ass
 
                 if job_to_ass is None:
                     job_to_ass = get_best_job(available_toys, elf.rating, elf.next_available_time, hrs, force=True) 
@@ -113,32 +121,40 @@ def matts_solution(bj, tj, gj, soln_file, myelves,low_thresh, high_thresh):
                 tt = ref_time + datetime.timedelta(seconds=60*work_start_time)
                 time_string = " ".join([str(tt.year), str(tt.month), str(tt.day), str(tt.hour), str(tt.minute)])
                 wcsv.writerow([job_to_ass.id, elf.id, time_string, work_duration])
-                print job_to_ass.id, elf.id, time_string, work_duration, elf.rating
+                #print job_to_ass.id, elf.id, time_string, work_duration, elf.rating
+                toys_ass+=1
                 if len(available_toys)<=0:
                     break
-        while len(available_toys)>0:
+        
+        print "Medium jobs exhausted, toys assigned: ", toys_ass
+        if next_tiny is None:
+            print "Tiny jobs exhausted!"
+        if next_big is None:
+            print "Big jobs exhausted!"
+
+        while next_big is not None or next_tiny is not None:
+            if toys_ass > next_print[0]:
+                next_print.pop[0]
+                print "assigned toys: ", toys_ass
             for elf in myelves:
-                print 'elf ', elf.id
+                #print 'elf ', elf.id
                 job_to_ass=None
                 if elf.rating >= high_thresh  and next_big is not None:
-                    print 'long'
+                    #print 'long'
                     job_to_ass = next_big
                     next_big = next_newtoy(bjfile)
-                elif elf.rating>=low_thresh:
-                    print 'med'
-                    job_to_ass = get_best_job(available_toys, elf.rating, elf.next_available_time, hrs, force=False) 
-                print job_to_ass
-                if job_to_ass==None and next_tiny is not None:
-                    print 'short'
-                    print 'nexttiny'
-                    print next_tiny
+                elif next_tiny is not None:
+                    #print 'short'
+                    #print 'nexttiny'
+                    #print next_tiny
                     job_to_ass = next_tiny
                     next_tiny = next_newtoy(tjfile)
-                print job_to_ass
+                else:
+                    #there are no tiny jobs left
+                    job_to_ass = next_big
+                    next_big = next_newtoy(bjfile)
+                #print job_to_ass
 
-                if job_to_ass is None:
-                    job_to_ass = get_best_job(available_toys, elf.rating, elf.next_available_time, hrs, force=True) 
-                
                 work_start_time = elf.next_available_time
                 elf.next_available_time, work_duration, unsanctioned = \
                     assign_elf_to_toy(work_start_time, elf, job_to_ass, hrs)
@@ -147,15 +163,11 @@ def matts_solution(bj, tj, gj, soln_file, myelves,low_thresh, high_thresh):
                 tt = ref_time + datetime.timedelta(seconds=60*work_start_time)
                 time_string = " ".join([str(tt.year), str(tt.month), str(tt.day), str(tt.hour), str(tt.minute)])
                 wcsv.writerow([job_to_ass.id, elf.id, time_string, work_duration])
-                print job_to_ass.id, elf.id, time_string, work_duration, elf.rating
-                if len(available_toys)<=0:
+                #print job_to_ass.id, elf.id, time_string, work_duration, elf.rating
+                toys_ass+=1
+                if next_big is None and next_tiny is None:
                     break
-    
-
-
-
-
-
+    print "Total toys assigned: ", toys_ass    
     bjfile.close()
     tjfile.close()
 
@@ -170,9 +182,9 @@ if __name__ == '__main__':
         low_thresh = 0.5
         high_thresh = 2.0
 
-        tj = os.path.join(os.getcwd(), 'data/tiny_test.csv' )
-        bj = os.path.join(os.getcwd(), 'data/big_test.csv' )
-        gj = os.path.join(os.getcwd(), 'data/good_test.csv' )
+        tj = os.path.join(os.getcwd(), 'data/tiny_jobs.csv' )
+        bj = os.path.join(os.getcwd(), 'data/big_jobs.csv' )
+        gj = os.path.join(os.getcwd(), 'data/good_jobs.csv' )
         soln_file = os.path.join(os.getcwd(), 'data/matts_%d.csv' %(count))
 
         matts_solution(bj, tj, gj, soln_file, myelves, low_thresh, high_thresh)

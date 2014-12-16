@@ -121,21 +121,21 @@ def score_submission(sub_file, myToys, hrs, NUM_ELVES):
 if __name__ == '__main__':
     """ Evaluation script for Helping Santa's Helpers, the 2014 Kaggle Holiday Optimization Competition. """
 
-    for count in [ 200, ]:
+    for count in [ 900, ]:
         start = time.time()
 
 #        NUM_TOYS = 10000000
-        NUM_TOYS = 1666558
+        NUM_TOYS =  9998
         NUM_ELVES = count
 
-        toy_file = os.path.join(os.getcwd(), './data/toys_rev2.csv')
-#        toy_file = os.path.join(os.getcwd(), './data/test_toys.csv')
+#        toy_file = os.path.join(os.getcwd(), './data/toys_rev2.csv')
+        toy_file = os.path.join(os.getcwd(), './data/all_test.csv')
         myToys = read_toys(toy_file, NUM_TOYS)
         print ' -- All toys read. Starting to score submission. '
 
     #    sub_file = os.path.join(os.getcwd(), 'sampleSubmission_rev2.csv')
 #        sub_file = os.path.join(os.getcwd(), './data/noovertime2_test_%d.csv' %count)
-        sub_file = os.path.join(os.getcwd(), './data/noovertime2_%d.csv' %count)
+        sub_file = os.path.join(os.getcwd(), './data/matts_%d.csv' %count)
         hrs = Hours()
         score_submission(sub_file, myToys, hrs, NUM_ELVES)
 
