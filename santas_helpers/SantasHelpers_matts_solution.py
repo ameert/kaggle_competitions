@@ -41,7 +41,7 @@ def newtoy(newtoy):
     return Toy(newtoy[0], newtoy[1], newtoy[2])
 
     
-def get_best_job(available_toys, rating, available_time, hrs):
+def get_best_job(available_toys, rating, available_time, hrs, force=False):
     minleft =hrs.day_minutes_remaining(available_time)
     if minleft*rating < available_toys[-1].duration:
         best_job = None
@@ -49,6 +49,8 @@ def get_best_job(available_toys, rating, available_time, hrs):
     job = np.where(jobs<minleft)[0]
     if job.size>0:
         best_job = available_toys.pop(np.min(job))
+    elif force:
+        best_job = available_toys.pop(0)
     return best_job    
         
 
@@ -80,19 +82,28 @@ def matts_solution(bj, tj, gj, soln_file, myelves,low_thresh, high_thresh):
         next_tiny = next_newtoy(tjfile)
         next_big = next_newtoy(bjfile)
 
-        while len(available_toys)>0 :
+        while len(available_toys)>0:
             for elf in myelves:
                 print 'elf ', elf.id
                 job_to_ass=None
                 if elf.rating >= high_thresh  and next_big is not None:
+                    print 'long'
                     job_to_ass = next_big
                     next_big = next_newtoy(bjfile)
                 elif elf.rating>=low_thresh:
-                    job_to_ass = get_best_job(available_toys, elf.rating, elf.next_available_time, hrs) 
+                    print 'med'
+                    job_to_ass = get_best_job(available_toys, elf.rating, elf.next_available_time, hrs, force=False) 
+                print job_to_ass
                 if job_to_ass==None and next_tiny is not None:
+                    print 'short'
+                    print 'nexttiny'
+                    print next_tiny
                     job_to_ass = next_tiny
                     next_tiny = next_newtoy(tjfile)
+                print job_to_ass
 
+                if job_to_ass is None:
+                    job_to_ass = get_best_job(available_toys, elf.rating, elf.next_available_time, hrs, force=True) 
                 
                 work_start_time = elf.next_available_time
                 elf.next_available_time, work_duration, unsanctioned = \
@@ -103,9 +114,50 @@ def matts_solution(bj, tj, gj, soln_file, myelves,low_thresh, high_thresh):
                 time_string = " ".join([str(tt.year), str(tt.month), str(tt.day), str(tt.hour), str(tt.minute)])
                 wcsv.writerow([job_to_ass.id, elf.id, time_string, work_duration])
                 print job_to_ass.id, elf.id, time_string, work_duration, elf.rating
+                if len(available_toys)<=0:
+                    break
+        while len(available_toys)>0:
+            for elf in myelves:
+                print 'elf ', elf.id
+                job_to_ass=None
+                if elf.rating >= high_thresh  and next_big is not None:
+                    print 'long'
+                    job_to_ass = next_big
+                    next_big = next_newtoy(bjfile)
+                elif elf.rating>=low_thresh:
+                    print 'med'
+                    job_to_ass = get_best_job(available_toys, elf.rating, elf.next_available_time, hrs, force=False) 
+                print job_to_ass
+                if job_to_ass==None and next_tiny is not None:
+                    print 'short'
+                    print 'nexttiny'
+                    print next_tiny
+                    job_to_ass = next_tiny
+                    next_tiny = next_newtoy(tjfile)
+                print job_to_ass
+
+                if job_to_ass is None:
+                    job_to_ass = get_best_job(available_toys, elf.rating, elf.next_available_time, hrs, force=True) 
+                
+                work_start_time = elf.next_available_time
+                elf.next_available_time, work_duration, unsanctioned = \
+                    assign_elf_to_toy(work_start_time, elf, job_to_ass, hrs)
+                elf.update_elf(hrs, job_to_ass, work_start_time, work_duration)
+
+                tt = ref_time + datetime.timedelta(seconds=60*work_start_time)
+                time_string = " ".join([str(tt.year), str(tt.month), str(tt.day), str(tt.hour), str(tt.minute)])
+                wcsv.writerow([job_to_ass.id, elf.id, time_string, work_duration])
+                print job_to_ass.id, elf.id, time_string, work_duration, elf.rating
+                if len(available_toys)<=0:
+                    break
+    
+
+
+
+
 
     bjfile.close()
-    gjfile.close()
+    tjfile.close()
 
     return
 
