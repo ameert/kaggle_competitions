@@ -79,11 +79,8 @@ def matts_solution(bj, tj, gj, soln_file, myelves,low_thresh, high_thresh):
 
     print "assigning toys"
     toys_ass = 0
-    next_print = range(0,1000000, 1000)
+    next_print = list(range(0,1000000, 1000))
     with open(soln_file, 'wb') as w:
-        if toys_ass > next_print[0]:
-            next_print.pop[0]
-            print "assigned toys: ", toys_ass
         wcsv = csv.writer(w)
         wcsv.writerow(['ToyId', 'ElfId', 'StartTime', 'Duration'])
     
@@ -91,8 +88,18 @@ def matts_solution(bj, tj, gj, soln_file, myelves,low_thresh, high_thresh):
         next_big = next_newtoy(bjfile)
 
         while len(available_toys)>0:
+            if toys_ass > next_print[0]:
+                 next_print.pop(0)
+                 print "assigned toys: ", toys_ass
             for elf in myelves:
-                #print 'elf ', elf.id
+                try:
+                    next_available_time, work_duration, unsanctioned = \
+                        assign_elf_to_toy(elf.next_available_time, elf, next_tiny, hrs)
+                    if (unsanctioned > 0):
+                        elf.next_available_time = hrs.tomorrow_minutes(elf.next_available_time)
+                except: 
+                    pass
+                # print 'elf ', elf.id
                 job_to_ass=None
                 if elf.rating >= high_thresh  and next_big is not None:
                     #print 'long'
@@ -100,14 +107,21 @@ def matts_solution(bj, tj, gj, soln_file, myelves,low_thresh, high_thresh):
                     next_big = next_newtoy(bjfile)
                 elif elf.rating>=low_thresh:
                     #print 'med'
-                    job_to_ass = get_best_job(available_toys, elf.rating, elf.next_available_time, hrs, force=False) 
-                #print job_to_ass
+                    if (hrs.day_minutes_remaining(elf.next_available_time)< \
+                            (hrs.hours_per_day*60-10)):
+                        job_to_ass = get_best_job(available_toys, elf.rating, elf.next_available_time, hrs, force=False) 
+                    else:
+                        job_to_ass = get_best_job(available_toys, elf.rating, elf.next_available_time, hrs, force=True) 
+                # print job_to_ass
                 if job_to_ass==None and next_tiny is not None:
                     #print 'short'
                     #print 'nexttiny'
                     #print next_tiny
-                    job_to_ass = next_tiny
-                    next_tiny = next_newtoy(tjfile)
+                    if (elf.rating <= low_thresh):
+                        job_to_ass = next_tiny
+                        next_tiny = next_newtoy(tjfile)
+                    else:
+                        elf.next_available_time = hrs.tomorrow_minutes(elf.next_available_time)
                 #print job_to_ass
 
                 if job_to_ass is None:
